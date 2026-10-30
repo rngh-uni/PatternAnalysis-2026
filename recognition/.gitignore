@@ -1,1 +1,9 @@
+# python virtual environment
 .venv
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# do not track dataset
+archive
