@@ -1,10 +1,14 @@
+--index-url https://download.pytorch.org/whl/rocm10.0
+--extra-index-url https://pypi.org/simple
 kagglehub
 matplotlib
 pandas
 numpy
-torch @ https://download.pytorch.org/whl/rocm10.0
-torchvision @ https://download.pytorch.org/whl/rocm10.0
 scikit_learn
 seaborn
 pillow
+
+torch 
+torchvision
+
 
