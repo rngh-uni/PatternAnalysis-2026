@@ -33,7 +33,7 @@ python3 train.py
 - Details:
     - Image dimensions: 224x224
     - Classes: 0 for benign ; 1 for malignant
-    - Total images: 24453 | 19227 benign | 24453 malignant
+    - Total images: 24453 | 19227 benign | 5266 malignant
     - CSV file: Contains image IDs, labels, and patient IDs
 
 ## Model Architecture
