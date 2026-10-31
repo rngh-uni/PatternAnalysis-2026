@@ -1,6 +1,10 @@
 kagglehub
+matplotlib
 pandas
 numpy
-torch
-torchvision
+torch @ https://download.pytorch.org/whl/rocm10.0
+torchvision @ https://download.pytorch.org/whl/rocm10.0
 scikit_learn
+seaborn
+pillow
+
