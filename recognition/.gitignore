@@ -1,5 +1,6 @@
-# python virtual environment
+# python
 .venv
+__pycache__/
 
 # Jupyter Notebooks
 .ipynb_checkpoints
@@ -7,6 +8,9 @@
 
 # do not track dataset
 archive
+
+# do not track model files
+*.pth
 
 # misc
 *.bak
