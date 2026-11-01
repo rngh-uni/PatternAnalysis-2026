@@ -12,7 +12,7 @@ USE_GROUP_SPLIT = True # Split by patient
 
 BATCH_TRIPLET = 64                 # Batch size for Siamese training (triplet loss)
 BATCH_TEST = 64                    # Batch size for testing
-NUM_WORKERS = 4                    # Number of worker threads for data loading
+NUM_WORKERS = 8                    # Number of worker threads for data loading
 
 # Image Preprocessing
 MEAN = [0.5, 0.5, 0.5]             
@@ -27,13 +27,12 @@ COLOR_JITTER = dict(               #  color jitter parameters
 # Model Settings 
 OUT_DIM = 512                      # Output embedding dimension of Siamese encoder
 HIDDEN_DIMS = (256, 64)            # Hidden layer dimensions for classifier MLP
-NEGATIVE_SLOPE = 0.01              # LeakyReLU slope for classifier
-DROPOUT_P = 0.4                    # Dropout probability for classifier layers
+RESNET_OUT = 2048                  # Output features of ResNet subnetwork
 
 # Training Hyperparameters
 TRIPLET_MARGIN = 1.0               # Margin for triplet loss
-EPOCHS_SIAMESE = 100               # Max epochs for Siamese encoder training
-LR_SIAMESE = 0.0001                # Learning rate for Siamese encoder
+EPOCHS_SIAMESE = 25                # Epochs for Siamese encoder training
+LR_SIAMESE = 0.001                # Learning rate for Siamese encoder
 
 # Early Stop / Scheduler
 PATIENCE = 5                       # Early stopping patience in epochs
