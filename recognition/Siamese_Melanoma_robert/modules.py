@@ -3,64 +3,73 @@ import torch.nn as nn
 import torchvision.models as models
 import torch.nn.functional as F
 
-from params import OUT_DIM, HIDDEN_DIMS, NEGATIVE_SLOPE, DROPOUT_P, TRIPLET_MARGIN
+from params import OUT_DIM, HIDDEN_DIMS, TRIPLET_MARGIN, RESNET_OUT
 
 class SiameseNet(nn.Module):
     """
-    Siamese Network with Resnet18 sub-network.
+    Siamese Network with Resnet50 sub-network.
     """
     
     def __init__(self, embed_dim=OUT_DIM):
         super().__init__()
 
-        try:
-            subnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
-        except Exception:
-            subnet = models.resnet18(pretrained=True)
+        subnet = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+        
+        self.feature_extractor = nn.Sequential(*list(subnet.children())[:-1])
 
-        subnet.fc = nn.Identity()
-        self.subnet = subnet
-
-        self.head = nn.Sequential(
-            nn.Linear(2048, 2048),
-            nn.BatchNorm1d(2048),
+        self.fc_layers = nn.Sequential(
+            nn.Linear(RESNET_OUT, 1024),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.3),
-
-            nn.Linear(2048, 1024),
-            nn.BatchNorm1d(1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.3),
-
-            nn.Linear(1024, 1024),
-            nn.BatchNorm1d(1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.2),
+            nn.Dropout(0.5),
 
             nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.2),
+            nn.Dropout(0.5),
 
-            nn.Linear(512, embed_dim)
+            nn.Linear(512, 256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+
+            nn.Linear(256, embed_dim)
         )
 
-    def forward(self, x):
+        self.classifier = nn.Linear(embed_dim, 2)
+    
+    def get_embedding(self, x):
         """
-        Forward pass through the network.
+        Compute an embedding for a batch of images
+        Args: x (torch.Tensor): input tensor of shape (B, C, H, W)
+        Returns: torch.Tensor: embedding tensor of shape (B, embedding_dim)
+        """
+        out = self.feature_extractor(x)
+        out = out.view(out.size(0), -1)
+        out = self.fc_layers(out)
+        return out
+
+    def classify(self, x):
+        """
+        Predict class logits from raw images 
+        Args: x (torch.Tensor): input tensor of shape (B, C, H, W)
+        Returns: torch.Tensor: logits of shape (B, num_classes)
+        """
+        embedding = self.get_embedding(x)
+        return self.classifier(embedding)
+
+    def forward(self, x1, x2, x3):
+        """
+        Forward pass for a triplet: anchor, positive, negative
         Args:
-            x (torch.Tensor): Input images of shape (batch_size, 3, 224, 224)
+            x1 (torch.Tensor): anchor batch tensor of shape (B, C, H, W)
+            x2 (torch.Tensor): positive batch tensor of shape (B, C, H, W)
+            x3 (torch.Tensor): negative batch tensor of shape (B, C, H, W)
         Returns:
-            torch.Tensor: L2-normalized embeddings of shape (batch_size, embed_dim)
+            tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            embeddings for (anchor, positive, negative), each of shape (B, embedding_dim)
         """
-        # Extract features
-        features = self.subnet(x)
-
-        # Project to embedding space
-        embeddings = self.head(features)
-
-        # L2 normalization for stable metric learning
-        return F.normalize(embeddings, dim=1)
+        out1 = self.get_embedding(x1)
+        out2 = self.get_embedding(x2)
+        out3 = self.get_embedding(x3)
+        return out1, out2, out3
 
 class TripletLoss(nn.Module):
 
