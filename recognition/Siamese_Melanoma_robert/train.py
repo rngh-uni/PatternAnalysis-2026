@@ -1,5 +1,6 @@
 from params import (
-    MODELPATH, IMAGEPATH, TRIPLET_MARGIN,
+    MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN, 
+    BATCH_TRIPLET, BATCH_TEST,
     LR_SIAMESE, EPOCHS_SIAMESE,
     PATIENCE, MIN_DELTA, SCHED_FACTOR, SCHED_PATIENCE,
     SIAMESE_LOSS_NAME, SAVE_SAMPLE_NAME, OUT_DIM
@@ -7,20 +8,27 @@ from params import (
 
 import os
 import torch
+
+torch.backends.cudnn.enabled = False # bandaid fix
+
 import torch.nn as nn
-from utils import ensure_dir, plot_lines, save_sample_input, extract_features
+
+#from utils import ensure_dir, plot_lines, save_sample_input, extract_features
 
 from torch.utils.data import DataLoader
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import matplotlib.pyplot as plt
+import torch.optim as optim
 from torch.amp import autocast, GradScaler
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from sklearn.metrics import confusion_matrix, roc_auc_score, accuracy_score
 from torch.utils.data import DataLoader
-from typing import Tuple
 
-from dataset import get_loaders
+from typing import Tuple
+import numpy as np
+import matplotlib.pyplot as plt
+
+from dataset import get_data_loaders
 from modules import SiameseNet, TripletLoss
 from predict import results_siamese_network
 
@@ -73,7 +81,7 @@ def train_epoch(
 
             # Logits for classification loss 
             logits = model.classify(anchor)
-            c_loss = classifier_loss(logits, labels)
+            c_loss = classifier_loss(logits, labels.long())
 
             # Total loss 
             loss = t_loss + c_loss
@@ -146,7 +154,7 @@ def validate(
 
             # Logits for classification loss
             classifier_out = model.classify(anchor)
-            c_loss = classifier_loss(classifier_out, labels)
+            c_loss = classifier_loss(classifier_out, labels.long())
 
             # Total loss
             loss = t_loss + c_loss
@@ -174,7 +182,7 @@ def validate(
 def train_siamese_network(
     train_loader: DataLoader,
     val_loader: DataLoader,
-    model: SiameseNetwork,
+    model: SiameseNet,
     optimizer: torch.optim.Optimizer,
     scheduler: torch.optim.lr_scheduler,
     triplet_loss: TripletLoss,
@@ -195,7 +203,7 @@ def train_siamese_network(
     Args:
         train_loader (DataLoader): DataLoader for the training data.
         val_loader (DataLoader): DataLoader for the validation data.
-        model (SiameseNetwork): The Siamese Network model.
+        model (SiameseNet): The Siamese Network model.
         optimizer (torch.optim.Optimizer): optimizer for model parameters.
         scheduler (torch.optim.lr_scheduler._LRScheduler | ReduceLROnPlateau): LR scheduler stepped with val AUC.
         triplet_loss (TripletLoss): The triplet loss function.
@@ -235,7 +243,7 @@ def train_siamese_network(
 
         # Save the model if it performs with better auc roc score on validation set
         if val_auc > best_val_auc:
-            torch.save(model.state_dict(), os.path.join(MODELPATH, "siamese.pth"))
+            torch.save(model.state_dict(), os.path.join(MODEL_PATH, "siamese.pth"))
             best_val_auc = val_auc
 
     return train_loss_per_epoch, train_acc_per_epoch, train_auc_per_epoch, val_loss_per_epoch, val_acc_per_epoch, val_auc_per_epoch
@@ -290,7 +298,7 @@ def main() -> None:
     )
 
     # Initalise Model
-    model = SiameseNetwork(OUT_DIM).to(device)
+    model = SiameseNet(OUT_DIM).to(device)
 
     # Initialise loss functions
     triplet_loss = TripletLoss().to(device)
@@ -298,7 +306,7 @@ def main() -> None:
 
     # Initialise Optimiser and Scheduler
     optimizer = optim.Adam(model.parameters(), lr=LR_SIAMESE)
-    scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=5)
+    scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=SCHED_FACTOR, patience=SCHED_PATIENCE)
     scaler = GradScaler()
 
     # Train the model
@@ -325,7 +333,7 @@ def main() -> None:
         val_aucroc_per_epoch=val_auc_per_epoch,
     )
 
-    model.load_state_dict(torch.load(os.path.join(MODELPATH, "siamese.pth")))
+    model.load_state_dict(torch.load(os.path.join(MODEL_PATH, "siamese.pth")))
 
     # Test the model with test dataset
     results_siamese_network(test_loader, model, device)

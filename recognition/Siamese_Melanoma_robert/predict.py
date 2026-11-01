@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import numpy as np
@@ -10,7 +11,7 @@ from typing import Tuple
 from modules import SiameseNet
 
 from params import (
-    DATA_PATH, MODELPATH, IMAGEPATH, TRIPLET_MARGIN,
+    DATA_PATH, MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN,
 )
 
 def produce_evaluation_metrics(
@@ -48,7 +49,7 @@ def produce_evaluation_metrics(
 def plot_tsne_from_embeddings(
     embeddings: np.ndarray | torch.Tensor, 
     test_pred: list,
-    out_path: str = os.path.join(IMAGEPATH, "testing_tsne_embeddings.png"), 
+    out_path: str = os.path.join(IMAGE_PATH, "testing_tsne_embeddings.png"), 
     title: str = "t-SNE visualization of embeddings"
 ) -> None:
     """
@@ -61,7 +62,7 @@ def plot_tsne_from_embeddings(
     """
 
     # Set up t-SNE to reduce D-dim embeddings to 2D 
-    tsne = TSNE(n_components=2, init="pca", random_state=42, n_iter=2000, learning_rate=200, perplexity=30)
+    tsne = TSNE(n_components=2, init="pca", random_state=42, max_iter=2000, learning_rate=200, perplexity=30)
 
     # Run t-SNE and get the 2D coordinates for each embedding
     X2 = tsne.fit_transform(embeddings)
@@ -81,7 +82,7 @@ def plot_tsne_from_embeddings(
 def plot_confusion_matrix(
     test_true: list,
     test_pred: list,
-    out_path: str = os.path.join(IMAGEPATH, "testing_confusion_matrix.png"), 
+    out_path: str = os.path.join(IMAGE_PATH, "testing_confusion_matrix.png"), 
     title: str ="Confusion Matrix (Percentages)" 
 ) -> None:
     """
@@ -118,7 +119,7 @@ def plot_confusion_matrix(
 def plot_roc_curve(
     test_true: list, 
     test_probs: list,
-    out_path: list =os.path.join(IMAGEPATH, "roc_curve.png"), 
+    out_path: list =os.path.join(IMAGE_PATH, "roc_curve.png"), 
     title: list ="ROC Curve"
 ):
     """
@@ -157,7 +158,7 @@ def plot_roc_curve(
 
 def test_siamese_network(
     test_loader: DataLoader,
-    model: SiameseNetwork,
+    model: SiameseNet,
     device: str
 )-> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
@@ -165,7 +166,7 @@ def test_siamese_network(
     Uses the classifier head on anchor images and also collects their embeddings
     Args:
         test_loader (DataLoader): Dataloader for test dataset.
-        model (SiameseNetwork): Trained model.
+        model (SiameseNet): Trained model.
         device (str): Compute device.
     Returns:
         Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -197,7 +198,7 @@ def test_siamese_network(
 
 def results_siamese_network(
     test_loader: DataLoader,
-    model: SiameseNetwork,
+    model: SiameseNet,
     device: str
 ):
     """
@@ -210,7 +211,7 @@ def results_siamese_network(
       - ROC curve
     Args:
         test_loader (DataLoader): Dataloader for training dataset.
-        model (SiameseNetwork): Trained model.
+        model (SiameseNet): Trained model.
         device (str): compute device.
     """
     # Inference

@@ -11,7 +11,7 @@ from typing import Tuple, Optional, List
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, transforms, models
 
 import seaborn as sns
@@ -23,14 +23,16 @@ from sklearn.metrics import (classification_report, confusion_matrix,
                             average_precision_score, RocCurveDisplay,
                             PrecisionRecallDisplay)
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.model_selection import train_test_split
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # Hyper Parameters
 from params import (
-    DATAPATH, CSV_NAME, IMG_DIR, SEED,
-    TRAIN_FRAC, VAL_FRAC, TEST_FRAC, USE_GROUP_SPLIT
+    DATA_PATH, CSV_NAME, IMG_DIR, SEED,
+    TRAIN_FRAC, VAL_FRAC, TEST_FRAC, USE_GROUP_SPLIT,
+    COLOR_JITTER
 )
 
 class TripletDataGenerator(torch.utils.data.Dataset):
@@ -132,7 +134,7 @@ class TripletDataGenerator(torch.utils.data.Dataset):
                 anchor_img = self.transform(anchor_img)
             return anchor_img, torch.empty(1), torch.empty(1), anchor_label
 
-def get_data_path(root:str=DATAPATH, metadata_path:str=CSV_NAME, image_dir:str=IMG_DIR) -> tuple[list]:
+def get_data_path(root:str=DATA_PATH, metadata_path:str=CSV_NAME, image_dir:str=os.path.join(DATA_PATH, IMG_DIR)) -> tuple[list]:
     """
     Load ISIC 2020 image paths and labels from metadata and an image folder
     Args:
@@ -238,9 +240,9 @@ def get_data_loaders(train_batch_size=32, test_val_batch_size=64):
 
     # Extract the data from the given locations
     images, labels = get_data_path(
-        root=DATAPATH,
+        root=DATA_PATH,
         metadata_path=CSV_NAME,
-        image_dir=IMG_DIR
+        image_dir=os.path.join(DATA_PATH, IMG_DIR)
     )
 
     # Data split
