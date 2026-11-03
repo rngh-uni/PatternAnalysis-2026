@@ -222,3 +222,31 @@ def results_siamese_network(
     plot_confusion_matrix(test_true, test_pred)
     plot_tsne_from_embeddings(test_embeddings, test_pred)
     plot_roc_curve(test_true, test_probs)
+
+def test_baseline_network(test_loader, model, device):
+    model.eval()
+    all_labels, all_probs, all_preds = [], [], []
+
+    with torch.no_grad():
+        for anchor, _, _, labels in test_loader:
+            anchor = anchor.to(device).float()
+            logits = model(anchor)
+            probs = torch.softmax(logits, dim=1)[:, 1]
+            _, preds = logits.max(1)
+
+            all_labels.extend(labels.cpu().numpy())
+            all_probs.extend(probs.cpu().numpy())
+            all_preds.extend(preds.cpu().numpy())
+
+    return np.array(all_preds), np.array(all_probs), np.array(all_labels)
+
+def results_baseline(
+    test_loader: DataLoader,
+    model: ResNetBaseline,
+    device: str
+):
+    test_pred, test_probs, test_true = test_baseline_network(test_loader, model, device)
+    print("\n--- Baseline ResNet-50 Test Results ---")
+    produce_evaluation_metrics(test_pred.tolist(), test_probs.tolist(), test_true.tolist())
+    plot_confusion_matrix(test_true.tolist(), test_pred.tolist(), out_path=os.path.join(IMAGE_PATH, "baseline_confusion_matrix.png"))
+    plot_roc_curve(test_true.tolist(), test_probs.tolist(), out_path=os.path.join(IMAGE_PATH, "baseline_roc_curve.png"))

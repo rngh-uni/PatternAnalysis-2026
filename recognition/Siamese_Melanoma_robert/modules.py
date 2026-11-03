@@ -99,3 +99,22 @@ class TripletLoss(nn.Module):
         losses = torch.relu(distance_positive - distance_negative + self.margin)
 
         return losses.mean()
+
+class ResNetBaseline(nn.Module):
+    """
+    Standard ResNet-50 baseline matching the feature extractor backbone 
+    and classifier head dimensions used in the Siamese network.
+    """
+    def __init__(self, num_classes=2):
+        super().__init__()
+        # Reuse the exact same backbone and classification head structure
+        siamese_model = SiameseNet()
+        self.feature_extractor = siamese_model.feature_extractor
+        self.fc_layers = siamese_model.fc_layers
+        self.classifier = siamese_model.classifier
+
+    def forward(self, x):
+        out = self.feature_extractor(x)
+        out = out.view(out.size(0), -1)
+        out = self.fc_layers(out)
+        return self.classifier(out)

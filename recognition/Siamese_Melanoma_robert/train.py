@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 
 from dataset import get_data_loaders
 from modules import SiameseNet, TripletLoss
-from predict import results_siamese_network
+from predict import results_siamese_network, results_baseline
 
 def train_epoch(
     model : nn.Module,
@@ -248,6 +248,103 @@ def train_siamese_network(
 
     return train_loss_per_epoch, train_acc_per_epoch, train_auc_per_epoch, val_loss_per_epoch, val_acc_per_epoch, val_auc_per_epoch
 
+def train_baseline_epoch(
+    model: nn.Module,
+    train_loader,
+    criterion: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    device: str | torch.device,
+    scaler: GradScaler,
+    epoch_idx: int
+) -> Tuple[float, float, float]:
+    model.train()
+    running_loss, all_labels, all_probs, all_preds = [], [], [], []
+
+    for batch_idx, (anchor, _, _, labels) in enumerate(train_loader):
+        anchor, labels = anchor.to(device), labels.to(device)
+        optimizer.zero_grad()
+
+        with autocast(device_type='cuda'):
+            logits = model(anchor)
+            loss = criterion(logits, labels.long())
+
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        scaler.step(optimizer)
+        scaler.update()
+
+        running_loss.append(loss.item())
+        probs = torch.softmax(logits, dim=1)[:, 1]
+        preds = logits.argmax(dim=1)
+
+        all_labels.extend(labels.tolist())
+        all_probs.extend(probs.detach().cpu().numpy())
+        all_preds.extend(preds.detach().cpu().numpy())
+
+    avg_loss = float(np.mean(running_loss))
+    final_acc = accuracy_score(all_labels, all_preds)
+    auc_roc = roc_auc_score(all_labels, all_probs) if len(set(all_labels)) > 1 else float("nan")
+    return avg_loss, final_acc, auc_roc
+
+def validate_baseline(
+    model: nn.Module,
+    val_loader,
+    criterion: nn.Module,
+    device: str | torch.device,
+) -> Tuple[float, float, float]:
+    model.eval()
+    running_loss, all_labels, all_probs, all_preds = [], [], [], []
+
+    with torch.no_grad():
+        for anchor, _, _, labels in val_loader:
+            anchor, labels = anchor.to(device), labels.to(device)
+            logits = model(anchor)
+            loss = criterion(logits, labels.long())
+
+            running_loss.append(loss.item())
+            probs = torch.softmax(logits, dim=1)[:, 1]
+            preds = logits.argmax(dim=1)
+
+            all_labels.extend(labels.cpu().numpy())
+            all_probs.extend(probs.cpu().numpy())
+            all_preds.extend(preds.cpu().numpy())
+
+    avg_loss = float(np.mean(running_loss)) if running_loss else 0.0
+    final_acc = accuracy_score(all_labels, all_preds) if all_labels else 0.0
+    auc_roc = roc_auc_score(all_labels, all_probs) if len(set(all_labels)) > 1 else float("nan")
+    return avg_loss, final_acc, auc_roc
+
+def train_baseline(
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    model: ResNetBaseline,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler,
+    epochs: int,
+    scaler,
+    device: str
+):
+    for epoch in range(epochs):
+        train_loss, train_acc, train_auc = train_baseline_epoch(
+            model, train_loader, criterion, optimizer, device, scaler, epoch
+        )
+        val_loss, val_acc, val_auc = validate_baseline(
+            model, val_loader, criterion, device
+        )
+
+        print(f"Epoch [{epoch+1}/{epochs}] | "
+              f"Train Loss: {train_loss:.4f} - Train Acc: {train_acc:.4f} - Train AUC: {train_auc:.4f} | "
+              f"Val Loss: {val_loss:.4f} - Val Acc: {val_acc:.4f} - Val AUC: {val_auc:.4f}")
+
+        scheduler.step(val_auc)
+
+        if val_auc > best_val_auc:
+            best_val_auc = val_auc
+            os.makedirs(MODEL_PATH, exist_ok=True)
+            torch.save(model.state_dict(), os.path.join(MODEL_PATH, "resnet_baseline.pth"))
+    return best_val_auc
+
 def plot_training_graphs(
     train_loss_per_epoch: list[float],
     val_loss_per_epoch: list[float],
@@ -337,6 +434,23 @@ def main() -> None:
 
     # Test the model with test dataset
     results_siamese_network(test_loader, model, device)
+
+    # Now do baseline
+    model = ResNetBaseline().to(device)
+
+    best_val_auc_base = train_siamese_network(
+        train_loader,
+        val_loader,
+        model,
+        optimizer,
+        scheduler,
+        EPOCHS_SIAMESE,
+        scaler,
+        device
+    )
+
+    model.load_state_dict(torch.load(os.path.join(MODEL_PATH, "resnet_baseline.pth")))
+    results_baseline(test_loader, model, device)
 
 if __name__ == '__main__':
     main()
