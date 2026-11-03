@@ -52,6 +52,12 @@ A Resnet-50 subnetwork structure was chosen since it is effective for capturing 
 
 - Siamese networks can become very large, and computationally expensive to train, especially as the amount of training images grows.
 
+## Data Preprocessing
+
+- Input **224 x 224** dermoscoptic images
+- Split: **80/10/10** train/validation/test splits
+- Augmentation: random rotations, color jitter, horizontal/vertical flips on training set
+
 ## Results
 
 
@@ -61,15 +67,4 @@ A Resnet-50 subnetwork structure was chosen since it is effective for capturing 
 - 27/10/2026 | 2nd Training run failed
 - 29/10/2026 | 3rd Training run failed
 - 31/10/2026 | 4th Training run stalled after pc crash after ~40 epochs
-- 01/11/2026 | 5th Training run success
-
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
-
-Tasks may include:
-* Image Segmentation
-* Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion
+- 01/11/2026 | 5th Training run success (Achieved over 0.8 accuracy)
