@@ -53,7 +53,7 @@ A Resnet-50 subnetwork structure was chosen since it is effective for capturing 
 ### Risks
 
 - Siamese networks can become very large, and computationally expensive to train, especially as the amount of training images grows.
-- The data is very imbalanced, with
+- The images may come from the same patient, so model might recognise certain features from 
 
 ## Data Preprocessing
 
