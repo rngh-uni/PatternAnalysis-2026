@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from sklearn.manifold import TSNE
 from typing import Tuple
-from modules import SiameseNet
+from modules import SiameseNet, ResNetBaseline
 
 from params import (
     DATA_PATH, MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN,
