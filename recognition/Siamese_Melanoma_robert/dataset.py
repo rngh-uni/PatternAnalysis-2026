@@ -171,10 +171,10 @@ def split_train_val_test(images: list, labels: list):
     Returns: train_images, val_images, test_images, train_labels, val_labels, test_labels
     """
     train_images, other_images, train_labels, other_labels = train_test_split(
-        images, labels, test_size=0.2, stratify=labels
+        images, labels, test_size=0.2, stratify=labels, random_state=SEED
     )
     test_images, val_images, test_labels, val_labels = train_test_split(
-        other_images, other_labels, test_size=0.5, stratify=other_labels
+        other_images, other_labels, test_size=0.5, stratify=other_labels, random_state=SEED
     )
     return train_images, val_images, test_images, train_labels, val_labels, test_labels
 
@@ -194,6 +194,8 @@ def oversample_training(train_images, train_labels):
     # Number of samples to match the larger class
     num_class_0 = len(class_0_images)
     num_class_1 = len(class_1_images)
+
+    np.random.seed(seed=SEED)
 
     # If class 1 (the minority class) has fewer samples, oversample it
     if num_class_1 < num_class_0:
