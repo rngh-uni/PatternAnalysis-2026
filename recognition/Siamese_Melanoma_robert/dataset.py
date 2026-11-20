@@ -23,16 +23,14 @@ from sklearn.metrics import (classification_report, confusion_matrix,
                             average_precision_score, RocCurveDisplay,
                             PrecisionRecallDisplay)
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GroupShuffleSplit
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # Hyper Parameters
 from params import (
-    DATA_PATH, CSV_NAME, IMG_DIR, SEED,
-    TRAIN_FRAC, VAL_FRAC, TEST_FRAC, USE_GROUP_SPLIT,
-    COLOR_JITTER
+    DATA_PATH, CSV_NAME, IMG_DIR, SEED, MEAN, STD, ROT_DEG, FLIP_PROB, COLOR_JITTER, USE_GROUP_SPLIT
 )
 
 class TripletDataGenerator(torch.utils.data.Dataset):
@@ -256,21 +254,21 @@ def get_data_loaders(train_batch_size=32, test_val_batch_size=64):
     # Train dataset transform
     train_transform = transforms.Compose([
         transforms.RandomCrop(size=(224, 224)),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-        transforms.RandomRotation(10),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        transforms.RandomHorizontalFlip(FLIP_PROB),
+        transforms.RandomVerticalFlip(FLIP_PROB),
+        transforms.RandomRotation(ROT_DEG),
+        transforms.ColorJitter(COLOR_JITTER['brightness'], COLOR_JITTER['contrast'], COLOR_JITTER['saturation'], COLOR_JITTER['hue']),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                            std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(MEAN,
+                            STD),
     ])
 
     # Validate dataset transform
     val_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
+            MEAN,
+            STD
         ),
     ])
 
@@ -278,8 +276,8 @@ def get_data_loaders(train_batch_size=32, test_val_batch_size=64):
     test_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
+            MEAN,
+            STD
         )
     ])
 

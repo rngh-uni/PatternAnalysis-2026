@@ -15,18 +15,16 @@ BATCH_TEST = 64                    # Batch size for testing
 NUM_WORKERS = 8                    # Number of worker threads for data loading
 
 # Image Preprocessing
-MEAN = [0.5, 0.5, 0.5]             
-STD  = [0.5, 0.5, 0.5]             
-IMAGE_SIZE = 256                   # Image resize dimension
-ROT_DEG = 15                       # Max rotation degree for data augmentation
+MEAN = [0.485, 0.456, 0.406]             
+STD  = [0.485, 0.456, 0.406]             
+ROT_DEG = 10                       # Max rotation degree for data augmentation
 FLIP_PROB = 0.5                    # Probability of horizontal/vertical flip
 COLOR_JITTER = dict(               #  color jitter parameters
-    brightness=0.1, contrast=0.1, saturation=0.05, hue=0.02
+    brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1
 )
 
 # Model Settings 
 OUT_DIM = 512                      # Output embedding dimension of Siamese encoder
-HIDDEN_DIMS = (256, 64)            # Hidden layer dimensions for classifier MLP
 RESNET_OUT = 2048                  # Output features of ResNet subnetwork
 
 # Training Hyperparameters
@@ -36,7 +34,6 @@ LR_SIAMESE = 0.001                # Learning rate for Siamese encoder
 
 # Early Stop / Scheduler
 PATIENCE = 5                       # Early stopping patience in epochs
-MIN_DELTA = 0.001                  # Minimum improvement threshold for validation loss
 SCHED_FACTOR = 0.5
 SCHED_PATIENCE = 3
 
