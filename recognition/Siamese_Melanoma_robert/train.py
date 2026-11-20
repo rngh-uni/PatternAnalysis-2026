@@ -29,7 +29,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from dataset import get_data_loaders
-from modules import SiameseNet, TripletLoss
+from modules import SiameseNet, TripletLoss, ResNetBaseline
 from predict import results_siamese_network, results_baseline
 
 def train_epoch(
@@ -325,6 +325,7 @@ def train_baseline(
     scaler,
     device: str
 ):
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1).to(device)
     for epoch in range(epochs):
         train_loss, train_acc, train_auc = train_baseline_epoch(
             model, train_loader, criterion, optimizer, device, scaler, epoch
@@ -431,17 +432,17 @@ def main() -> None:
     )
 
     model.load_state_dict(torch.load(os.path.join(MODEL_PATH, "siamese.pth")))
-
+    
     # Test the model with test dataset
     results_siamese_network(test_loader, model, device)
 
     # Now do baseline
-    model = ResNetBaseline().to(device)
+    model_base = ResNetBaseline().to(device)
 
-    best_val_auc_base = train_siamese_network(
+    best_val_auc_base = train_baseline(
         train_loader,
         val_loader,
-        model,
+        model_base,
         optimizer,
         scheduler,
         EPOCHS_SIAMESE,
