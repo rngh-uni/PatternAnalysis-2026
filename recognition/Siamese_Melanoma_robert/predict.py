@@ -9,9 +9,11 @@ from torch.utils.data import DataLoader
 from sklearn.manifold import TSNE
 from typing import Tuple
 from modules import SiameseNet, ResNetBaseline
+from dataset import get_data_loaders
 
 from params import (
-    DATA_PATH, MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN, BATCH_TRIPLET, BATCH_TEST
+    DATA_PATH, MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN, BATCH_TRIPLET, BATCH_TEST,
+    OUT_DIM
 )
 
 def produce_evaluation_metrics(
@@ -221,7 +223,7 @@ def results_siamese_network(
     produce_evaluation_metrics(test_pred, test_probs, test_true)
     plot_confusion_matrix(test_true, test_pred)
     plot_tsne_from_embeddings(test_embeddings, test_pred)
-    plot_roc_curve(test_true, test_probs)
+    plot_roc_curve(test_true, test_probs, out_path=os.path.join(IMAGE_PATH, "testing_roc_curve.png"))
 
 def test_baseline_network(test_loader, model, device):
     model.eval()

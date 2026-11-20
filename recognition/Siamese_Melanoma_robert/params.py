@@ -25,6 +25,7 @@ COLOR_JITTER = dict(               #  color jitter parameters
 
 # Model Settings 
 OUT_DIM = 512                      # Output embedding dimension of Siamese encoder
+HIDDEN_DIMS = (256, 64) # Hidden layer dimensions for classifier MLP
 RESNET_OUT = 2048                  # Output features of ResNet subnetwork
 
 # Training Hyperparameters
