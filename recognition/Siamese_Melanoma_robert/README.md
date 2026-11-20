@@ -106,13 +106,20 @@ The baseline model does very well with correctly classifying benign images. Howe
 
 ### Siamese Network
 
-The Siamese network uses the baseline ResNet50 model as a backbone/subnetwork.
+```
+Testing Accuracy: 0.8444262964475296
+Testing AUR ROC: 0.9171179774947651
+Testing Sensitivity (Recall): 0.825
+Testing Specificity: 0.850
+```
+
+The Siamese network uses the baseline ResNet50 model as a backbone/subnetwork, and has successfully achieved at least 0.8 testing accuracy.
 
 | ![siamese_confusion](img/testing_confusion_matrix.png) | ![siamese_roc](img/testing_roc_curve.png) |
 | :---: | :---: |
 | Confusion Matrix for Siamese Network | AUC-ROC for Siamese Network |
 
-The Siamese network trades some accuracy when classifying benign images. However, the false negative rate has more than halved to ~10.5%. With an AUC-ROC value of ~0.89, the Siamese network is more capable of separating the two classes from one another.
+The Siamese network trades some accuracy when classifying benign images. However, the false negative rate has more than halved to ~10.5%. With an AUC-ROC value of ~0.92, the Siamese network is more capable of separating the two classes from one another.
 
 A way to see this is through t-distributed Stochastic Neighbour Embedding (t-SNE), which has been used to visualise the high-dimension (512 in this case) output from the Siamese model in a 2D graph. The yellow points represent malignant melanoma, whilst the blue points represent benign skin conditions. 
 
