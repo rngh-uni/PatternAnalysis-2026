@@ -1,10 +1,10 @@
 --index-url https://download.pytorch.org/whl/rocm10.0
 --extra-index-url https://pypi.org/simple
-kagglehub==1.02
+kagglehub==1.0.2
 matplotlib==3.10.9
 pandas==2.3.3
 numpy==2.4.4
-scikit_learn==1.91
+scikit_learn==1.9.1
 seaborn==0.13.2
 pillow==12.3.0
 
