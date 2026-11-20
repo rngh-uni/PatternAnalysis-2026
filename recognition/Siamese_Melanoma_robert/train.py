@@ -437,12 +437,12 @@ def main() -> None:
     results_siamese_network(test_loader, model, device)
 
     # Now do baseline
-    model_base = ResNetBaseline().to(device)
+    model = ResNetBaseline().to(device)
 
     best_val_auc_base = train_baseline(
         train_loader,
         val_loader,
-        model_base,
+        model,
         optimizer,
         scheduler,
         EPOCHS_SIAMESE,

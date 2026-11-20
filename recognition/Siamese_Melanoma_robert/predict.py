@@ -11,7 +11,7 @@ from typing import Tuple
 from modules import SiameseNet, ResNetBaseline
 
 from params import (
-    DATA_PATH, MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN,
+    DATA_PATH, MODEL_PATH, IMAGE_PATH, TRIPLET_MARGIN, BATCH_TRIPLET, BATCH_TEST
 )
 
 def produce_evaluation_metrics(
@@ -250,3 +250,26 @@ def results_baseline(
     produce_evaluation_metrics(test_pred.tolist(), test_probs.tolist(), test_true.tolist())
     plot_confusion_matrix(test_true.tolist(), test_pred.tolist(), out_path=os.path.join(IMAGE_PATH, "baseline_confusion_matrix.png"))
     plot_roc_curve(test_true.tolist(), test_probs.tolist(), out_path=os.path.join(IMAGE_PATH, "baseline_roc_curve.png"))
+
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_loader, val_loader, test_loader = get_data_loaders(
+        train_batch_size=BATCH_TRIPLET,
+        test_val_batch_size=BATCH_TEST
+    )
+
+    # Siamese Predictions
+    model = SiameseNet(OUT_DIM).to(device)
+
+    model.load_state_dict(torch.load(os.path.join(MODEL_PATH, "siamese.pth")))
+    results_siamese_network(test_loader, model, device)
+
+    # Baseline Predictions
+    model = ResNetBaseline().to(device)
+
+    model.load_state_dict(torch.load(os.path.join(MODEL_PATH, "resnet_baseline.pth")))
+    results_baseline(test_loader, model, device)
+
+if __name__ == '__main__':
+    main()
