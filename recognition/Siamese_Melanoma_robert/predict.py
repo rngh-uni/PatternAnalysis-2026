@@ -255,6 +255,7 @@ def results_baseline(
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    torch.backends.cudnn.enabled = False # bandaid fix
 
     train_loader, val_loader, test_loader = get_data_loaders(
         train_batch_size=BATCH_TRIPLET,
