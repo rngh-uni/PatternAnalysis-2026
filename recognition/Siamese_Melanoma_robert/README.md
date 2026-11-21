@@ -25,10 +25,18 @@ pip install -r recognition/Siamese_Melanoma_robert/requirements.txt
 
 ### 3. Running Training
 
-The below command also runs testing on the same 
+The below command also runs testing afterwards.
 
 ```bash
 python3 train.py
+```
+
+### Pure Testing
+
+Runs predictions using the saved models (without training)
+
+```bash
+python3 predicy.py
 ```
 
 ## Dataset Overview
@@ -96,13 +104,20 @@ To quantify this, a Area Under the Receiver Operating Characteristic (AUC-ROC) c
 
 ### Baseline Model - ResNet50
 
+```
+Testing Accuracy: 0.819542670477746
+Testing AUR ROC: 0.8993513422666184
+Testing Sensitivity (Recall): 0.852
+Testing Specificity: 0.887
+```
+
 The baseline model is a ResNet50 model which uses ImageNet pretrained weights as a starting point before further training and finetuning using the melanoma skin lesion images.
 
 | ![baseline_confusion](img/baseline_confusion_matrix.png) | ![baseline_roc](img/baseline_roc_curve.png) |
 | :---: | :---: |
 | Confusion Matrix for Baseline ResNet50 | AUC-ROC for Baseline ResNet50|
 
-The baseline model does very well with correctly classifying benign images. However, it has an almost 25% false negative rate. With a AUC-ROC value of ~0.82, the ResNet is relatively successful at differentiating between the benign and malignant cases. However, a false negative rate this high for medical disgnosis is unacceptable, meaning that this baseline model should not be considered for the task of automated classification of suspected melanoma.
+The baseline model does reach a assignment qualifying theshold of 0.8 testing accuracy, but it has an almost 15% false negative rate. With a AUC-ROC value of ~0.90, the ResNet is relatively successful at differentiating between the benign and malignant cases. However, a false negative rate this high for medical disgnosis is unacceptable, meaning that this baseline model should not be considered for the task of automated classification of suspected melanoma.
 
 ### Siamese Network
 
@@ -119,7 +134,7 @@ The Siamese network uses the baseline ResNet50 model as a backbone/subnetwork, a
 | :---: | :---: |
 | Confusion Matrix for Siamese Network | AUC-ROC for Siamese Network |
 
-The Siamese network trades some accuracy when classifying benign images. However, the false negative rate has more than halved to ~10.5%. With an AUC-ROC value of ~0.92, the Siamese network is more capable of separating the two classes from one another.
+The Siamese network trades some accuracy when classifying benign images. However, the false negative rate been reduced to ~10.5%. With an AUC-ROC value of ~0.92, the Siamese network is more capable of separating the two classes from one another.
 
 A way to see this is through t-distributed Stochastic Neighbour Embedding (t-SNE), which has been used to visualise the high-dimension (512 in this case) output from the Siamese model in a 2D graph. The yellow points represent malignant melanoma, whilst the blue points represent benign skin conditions. 
 
