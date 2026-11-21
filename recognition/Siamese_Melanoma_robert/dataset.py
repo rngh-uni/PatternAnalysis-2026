@@ -23,7 +23,7 @@ from sklearn.metrics import (classification_report, confusion_matrix,
                             average_precision_score, RocCurveDisplay,
                             PrecisionRecallDisplay)
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
-from sklearn.model_selection import train_test_split, GroupShuffleSplit
+from sklearn.model_selection import train_test_split, StratifiedGroupKFold
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -139,8 +139,9 @@ def get_data_path(root:str=DATA_PATH, metadata_path:str=CSV_NAME, image_dir:str=
         metadata_path: path to train-metadata.csv containing isic_id and target columns
         image_dir: directory containing image files named <isic_id>.jpg
     Returns:
-        images: NumPy array of absolute image paths found in image_dir
-        labels: NumPy array of integer targets aligned with images
+        images: List of absolute image paths
+        labels: List of integer targets
+        patient_ids: List of corresponding patient IDs
     """
     root = Path(root)
     metadata = pd.read_csv(root / metadata_path)
@@ -148,33 +149,98 @@ def get_data_path(root:str=DATA_PATH, metadata_path:str=CSV_NAME, image_dir:str=
     # Build expected filename for each image in metadata
     metadata['image_file'] = metadata['isic_id'] + '.jpg'
 
-    # Map filename to label 
-    image_to_label = dict(zip(metadata['image_file'], metadata['target']))
+    # Keep only images that exist in the image directory
+    available_images = set(os.listdir(image_dir))
+    metadata = metadata[metadata['image_file'].isin(available_images)]
 
-    # Keep only files that both exist in the folder and appear in metadata
+    # Map filename to label 
+    #image_to_label = dict(zip(metadata['image_file'], metadata['target']))
+
+    # Build aligned lists
     image_paths = [
         os.path.join(image_dir, img)
-        for img in os.listdir(image_dir)
-        if img in image_to_label
+        for img in metadata['image_file']
     ]
+    labels = metadata['target'].astype(int).tolist()
+    patient_ids = metadata['patient_id'].tolist()
 
     # Create labels aligned with the collected image paths
-    labels = [image_to_label[os.path.basename(p)] for p in image_paths]
+    #labels = [image_to_label[os.path.basename(p)] for p in image_paths]
 
-    return np.array(image_paths), np.array(labels)
+    #return np.array(image_paths), np.array(labels)
+    return image_paths, labels, patient_ids
 
-def split_train_val_test(images: list, labels: list):
+def split_train_val_test(images: list, labels: list, patient_ids: list):
     """
-    Apply a 0.8 train, 0.1 validation, 0.1 test split on the data set.
-    Returns: train_images, val_images, test_images, train_labels, val_labels, test_labels
+    Split the dataset into approximately:
+        80% training
+        10% validation
+        10% testing
+
+    Groups samples by patient_id and approximately
+    preserves label distribution.
+
+    Returns:
+        train_images, val_images, test_images,
+        train_labels, val_labels, test_labels
     """
-    train_images, other_images, train_labels, other_labels = train_test_split(
-        images, labels, test_size=0.2, stratify=labels, random_state=SEED
+
+    #train_images, other_images, train_labels, other_labels = train_test_split(
+    #    images, labels, test_size=0.2, stratify=labels, random_state=SEED
+    #)
+    #test_images, val_images, test_labels, val_labels = train_test_split(
+    #    other_images, other_labels, test_size=0.5, stratify=other_labels, random_state=SEED
+    #)
+    #return train_images, val_images, test_images, train_labels, val_labels, test_labels
+
+    images = np.array(images)
+    labels = np.array(labels)
+    patient_ids = np.array(patient_ids)
+
+    # First split: 80% train, 20% remaining
+    sgkf1 = StratifiedGroupKFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=SEED
     )
-    test_images, val_images, test_labels, val_labels = train_test_split(
-        other_images, other_labels, test_size=0.5, stratify=other_labels, random_state=SEED
+
+    train_idx, remaining_idx = next(
+        sgkf1.split(images, labels, groups=patient_ids)
     )
-    return train_images, val_images, test_images, train_labels, val_labels, test_labels
+
+    # Extract remaining data
+    remaining_images = images[remaining_idx]
+    remaining_labels = labels[remaining_idx]
+    remaining_patient_ids = patient_ids[remaining_idx]
+
+    # Second split: approximately 50% validation, 50% test
+    sgkf2 = StratifiedGroupKFold(
+        n_splits=2,
+        shuffle=True,
+        random_state=SEED
+    )
+
+    val_idx, test_idx = next(
+        sgkf2.split(
+            remaining_images,
+            remaining_labels,
+            groups=remaining_patient_ids
+        )
+    )
+
+    # Construct final splits
+    train_images = images[train_idx]
+    val_images = remaining_images[val_idx]
+    test_images = remaining_images[test_idx]
+
+    train_labels = labels[train_idx]
+    val_labels = remaining_labels[val_idx]
+    test_labels = remaining_labels[test_idx]
+
+    return (
+        train_images, val_images, test_images,
+        train_labels, val_labels, test_labels
+    )
 
 def oversample_training(train_images, train_labels):
     """
