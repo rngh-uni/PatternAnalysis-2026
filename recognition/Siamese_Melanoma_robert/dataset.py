@@ -136,7 +136,7 @@ def get_data_path(root:str=DATA_PATH, metadata_path:str=CSV_NAME, image_dir:str=
     """
     Load ISIC 2020 image paths and labels from metadata and an image folder
     Args:
-        metadata_path: path to train-metadata.csv containing isic_id and target columns
+        metadata_path: path to cleaned_metadata.csv containing isic_id and target columns
         image_dir: directory containing image files named <isic_id>.jpg
     Returns:
         images: List of absolute image paths
