@@ -102,7 +102,7 @@ The baseline model is a ResNet50 model which uses ImageNet pretrained weights as
 | :---: | :---: |
 | Confusion Matrix for Baseline ResNet50 | AUC-ROC for Baseline ResNet50|
 
-The baseline model does very well with correctly classifying benign images. However, it has an almost 25% false negative rate. TWith a AUC-ROC value of ~0.82, the ResNet is relatively successful at differentiating between the benign and malignant cases. However, a false negative rate this high for medical disgnosis is unacceptable, meaning that this baseline model should not be considered for the task of automated classification of suspected melanoma.
+The baseline model does very well with correctly classifying benign images. However, it has an almost 25% false negative rate. With a AUC-ROC value of ~0.82, the ResNet is relatively successful at differentiating between the benign and malignant cases. However, a false negative rate this high for medical disgnosis is unacceptable, meaning that this baseline model should not be considered for the task of automated classification of suspected melanoma.
 
 ### Siamese Network
 
