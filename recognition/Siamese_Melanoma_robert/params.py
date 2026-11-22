@@ -8,7 +8,6 @@ IMAGE_PATH = "./img"
 # Splitting data and loading
 SEED = 42
 TRAIN_FRAC, VAL_FRAC, TEST_FRAC = 0.8, 0.1, 0.1 # train/validation/testing sets
-USE_GROUP_SPLIT = True # Split by patient 
 
 BATCH_TRIPLET = 64                 # Batch size for Siamese training (triplet loss)
 BATCH_TEST = 64                    # Batch size for testing
