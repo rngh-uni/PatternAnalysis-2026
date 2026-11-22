@@ -6,6 +6,51 @@ Using Siamese Neural Network to classify possible melanoma and benign skin condi
 
 The intended users for the model are doctors and pathologists who want to be able to detect cancer cells early. The model should be able to detect obvious melanoma cases whilst ensuring that more borderline cases are not misdiagnosed as benign.
 
+## Feasibility
+
+Intended user and purpose:
+Doctors and pathologists who want to be able to detect cancer cells early. The model should be able to detect obvious melanoma cases whilst flagging borderline cases to relevant experts for manual review.
+
+Acceptance criteria:
+- The model minimises the number of false negatives (rather call a benign mole as malignant than miss a possible melanoma)
+- The model presents a confidence score
+- Have a clear confidence pass condition, where 100% of cases above it are malignant, but still has minimal unconfident cases
+
+Acceptance criteria:
+- The model minimises the number of false negatives (rather call a benign mole as malignant than miss a possible melanoma)
+- The model presents a confidence score
+- Have a clear confidence pass condition, where 100% of cases above it are malignant, but still has minimal unconfident cases
+
+Model architecture:
+
+Siamese Neural Network based on Resnet-50 architecture (ieeexplore.ieee.org/document/10857790)
+Triplet training – minimise distance from anchor to positive, and maximise distance to negative.
+
+Model architecture:
+
+Siamese Neural Network based on Resnet-18 architecture (ieeexplore.ieee.org/document/10857790)
+Triplet training – minimise distance from anchor to positive, and maximise distance to negative.
+
+Data audit:
+
+The data being used is a 224x224 resized image dataset (kaggle.com/datasets/roua91/isic-melanoma-dataset-resized-to-224x224). It has already been cleaned, with duplicate images, and metadata inconsistency issues solved. The resized dataset is smaller (takes up less storage; 368MB) than the full ISIC2020 dataset (116GB). There are a total of 19227 benign image samples, and 5226 malignant image samples in the dataset, with the related metadata stored in an accompanying csv file. The dataset’s images are mostly unobstructed full views of the suspected melanoma, but some only show part of the suspected tumor (e.g. ISIC_9367522), obscured by other means such as hair (ISIC_9749497) or contains artificial markings on the skin (e.g ISIC_9593940). 
+
+Computing budget:
+
+Local system with
+- 12 CPU threads
+- 32GB system RAM
+- 16GB VRAM
+
+Other system processes take up ~1GB of VRAM, so training has budget of ~15GB of VRAM. This is the main limiting factor for training. System RAM is never filled; training takes up takes ~9GB, thus not limiting factor. CPU core speed and memory bus speed may be limiting factors for data loading, but since this is not a significant proportion of training time, this is not the main limitation. 
+
+Google Collab T4 GPU and Rangpur cluster can also be used.
+
+Risks:
+
+Siamese networks can be computationally expensive to train, especially as the amount of training images grows. Local GPU is AMD Radeon 7800XT, so will need to use ROCm instead of CUDA. Rangpur cluster may have a long queue if computation needs to be done closer to deadline.
+
+
 ## Environment Setup
 
 ### 1. Getting the Data
