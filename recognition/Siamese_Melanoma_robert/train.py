@@ -13,8 +13,6 @@ torch.backends.cudnn.enabled = False # bandaid fix
 
 import torch.nn as nn
 
-#from utils import ensure_dir, plot_lines, save_sample_input, extract_features
-
 from torch.utils.data import DataLoader
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix

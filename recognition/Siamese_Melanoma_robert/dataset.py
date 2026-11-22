@@ -153,9 +153,6 @@ def get_data_path(root:str=DATA_PATH, metadata_path:str=CSV_NAME, image_dir:str=
     available_images = set(os.listdir(image_dir))
     metadata = metadata[metadata['image_file'].isin(available_images)]
 
-    # Map filename to label 
-    #image_to_label = dict(zip(metadata['image_file'], metadata['target']))
-
     # Build aligned lists
     image_paths = [
         os.path.join(image_dir, img)
@@ -164,10 +161,6 @@ def get_data_path(root:str=DATA_PATH, metadata_path:str=CSV_NAME, image_dir:str=
     labels = metadata['target'].astype(int).tolist()
     patient_ids = metadata['patient_id'].tolist()
 
-    # Create labels aligned with the collected image paths
-    #labels = [image_to_label[os.path.basename(p)] for p in image_paths]
-
-    #return np.array(image_paths), np.array(labels)
     return image_paths, labels, patient_ids
 
 def split_train_val_test(images: list, labels: list, patient_ids: list):
@@ -184,14 +177,6 @@ def split_train_val_test(images: list, labels: list, patient_ids: list):
         train_images, val_images, test_images,
         train_labels, val_labels, test_labels
     """
-
-    #train_images, other_images, train_labels, other_labels = train_test_split(
-    #    images, labels, test_size=0.2, stratify=labels, random_state=SEED
-    #)
-    #test_images, val_images, test_labels, val_labels = train_test_split(
-    #    other_images, other_labels, test_size=0.5, stratify=other_labels, random_state=SEED
-    #)
-    #return train_images, val_images, test_images, train_labels, val_labels, test_labels
 
     images = np.array(images)
     labels = np.array(labels)
