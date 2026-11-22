@@ -206,6 +206,7 @@ To reach a point where the model may be actually be useful, training for more ep
 - 29/10/2026 | 3rd Training run failed
 - 31/10/2026 | 4th Training run failed after pc crash after ~40 epochs -> Changed hyperparameters
 - 01/11/2026 | 5th Training run success (Achieved over 0.8 accuracy)
+- 20/11/2026 | Training after changes from feedback (Achieved over 0.8 accuracy) | ~9hrs Siamese, ~2hrs Baseline for training time
 
 ## Relevant Papers
 - [Siamese Neural Networks for One-shot Image Recognition](https://www.cs.toronto.edu/~zemel/documents/oneshot1.pdf)
